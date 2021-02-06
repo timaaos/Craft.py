@@ -1,7 +1,7 @@
 # Craft.py
 
-Better version of fogleman's Minecraft on python
-is project to install Python, and other tips.
+Better version of fogleman's Minecraft on python.
+You can modding, just use craft.py's lib
 
 ## How to Play
 
