@@ -2,12 +2,12 @@ from __future__ import division
 
 import sys
 import math
-import random
 import time
 from PIL import Image
 from collections import deque
 from pyglet import image
 from pyglet.gl import *
+import gen_noise as gen
 from pyglet.graphics import TextureGroup
 from pyglet.window import key, mouse
 TICKS_PER_SEC = 60
@@ -34,12 +34,10 @@ PLAYER_HEIGHT = 2
 
 if sys.version_info[0] >= 3:
     xrange = range
-
-def getHeight(image, pxX,pxY):
-
-    px = image.load()
-    color = px[pxX,pxY]
-    height = int(math.floor(color[1]))
+def getHeightNoise(noisearr, pxX,pxY):
+    height = noisearr[pxX][pxY]
+    height = height*10
+    print(height)
     return height
 
 def cube_vertices(x, y, z, n):
@@ -134,7 +132,12 @@ def sectorize(position):
     x, y, z = normalize(position)
     x, y, z = x // SECTOR_SIZE, y // SECTOR_SIZE, z // SECTOR_SIZE
     return (x, 0, z)
-
+def pxtonum(pxX,pxY):
+    num2 = 250-pxX
+    num3 = 250*pxY-1
+    num = num2+num3
+    print(num)
+    return num
 def rgb2hsv(image):
     return image.convert('HSV')
 class Model(object):
@@ -150,10 +153,9 @@ class Model(object):
         # A mapping from position to the texture of the block at that position.
         # This defines all the blocks that are currently in the world.
         self.world = {}
-
         # Same mapping as `world` but only contains blocks that are shown.
         self.shown = {}
-
+        self.position = (0,100,0)
         # Mapping from position to a pyglet `VertextList` for all shown blocks.
         self._shown = {}
 
@@ -178,9 +180,11 @@ class Model(object):
         miny = -20
         img = Image.open("noise.png")
         img = rgb2hsv(img)
+        noise = gen.noise()
         for z in range(n*2):
             for i in range(n*2):
-                x,h,s = z-n,getHeight(img,z,i),i-n
+                x,h,s = z-n,math.floor(getHeightNoise(noise,z,i)),i-n
+
                 self.add_block((x, h, s), GRASS, immediate=False)
                 h = h-1
                 dirth = h-5
@@ -193,14 +197,10 @@ class Model(object):
 
         for x in xrange(-n, n + 1, s):
             for z in xrange(-n, n + 1, s):
-                # create a layer stone an grass everywhere.
-                self.add_block((x, y - 2, z), GRASS, immediate=False)
-                for i in range(10):
-                    self.add_block((x, y - 3-i, z), STONE, immediate=False)
-                self.add_block((x, y - 3 - 10, z), BEDROCK, immediate=False)
+                # create a layer stone an grass everywhere
                 if x in (-n, n) or z in (-n, n):
                     # create outer walls.
-                    for dy in xrange(-2, 3):
+                    for dy in xrange(-25, 25):
                         self.add_block((x, y + dy, z), BEDROCK, immediate=False)
 
 
@@ -449,7 +449,10 @@ class Window(pyglet.window.Window):
 
     def __init__(self, *args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
-
+        img = image = pyglet.resource.image("icon.png")
+        self.set_icon(img)
+        # Hide the mouse cursor and prevent the mouse from leaving the window.
+        self.set_exclusive_mouse(True)
         # Whether or not the window exclusively captures the mouse.
         self.exclusive = False
 
@@ -466,7 +469,7 @@ class Window(pyglet.window.Window):
 
         # Current (x, y, z) position in the world, specified with floats. Note
         # that, perhaps unlike in math class, the y-axis is the vertical axis.
-        self.position = (0, 0, 0)
+        self.position = (0, 255, 0)
 
         # First element is rotation of the player in the x-z plane (ground
         # plane) measured from the z-axis down. The second is the rotation
@@ -680,6 +683,7 @@ class Window(pyglet.window.Window):
                     break
         return tuple(p)
 
+
     def on_mouse_press(self, x, y, button, modifiers):
         """ Called when a mouse button is pressed. See pyglet docs for button
         amd modifier mappings.
@@ -704,9 +708,11 @@ class Window(pyglet.window.Window):
                     ((button == mouse.LEFT) and (modifiers & key.MOD_CTRL)):
                 # ON OSX, control + left click = right click.
                 if previous:
-                    music = pyglet.resource.media('place.mp3')
-                    music.play()
+
                     if(self.inventorycol[self.blocknum] > 0):
+
+                        music = pyglet.resource.media('place.mp3')
+                        music.play()
                         self.model.add_block(previous, self.block)
                         self.inventorycol[self.blocknum] = self.inventorycol[self.blocknum]-1
 
@@ -930,12 +936,10 @@ def setup():
 
 def main():
     window = Window(width=800, height=600, caption='CraftPy', resizable=True)
-    # Hide the mouse cursor and prevent the mouse from leaving the window.
-    window.set_exclusive_mouse(True)
-    img = image = pyglet.resource.image("icon.png")
 
-    # setting image as icon
-    window.set_icon(img)
+
+
+
     setup()
     pyglet.app.run()
 
