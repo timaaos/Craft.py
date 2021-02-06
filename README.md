@@ -1,7 +1,8 @@
 # Craft.py
 
 Better version of fogleman's Minecraft on python.
-You can modding, just use craft.py's lib
+You can modding, just use craft.py's lib.
+Tutorial for Craft.py lib on wiki
 
 ## How to Play
 
