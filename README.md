@@ -18,9 +18,7 @@ You can modding, just use craft.py's lib
 ### Building
 
 - Selecting type of block to create:
-    - 1: brick
-    - 2: grass
-    - 3: sand
+    -Mouse scroll
 - Mouse left-click: remove block
 - Mouse right-click: create block
 
