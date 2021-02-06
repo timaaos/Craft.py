@@ -4,13 +4,12 @@ import sys
 import math
 import random
 import time
-
+from PIL import Image
 from collections import deque
 from pyglet import image
 from pyglet.gl import *
 from pyglet.graphics import TextureGroup
 from pyglet.window import key, mouse
-
 TICKS_PER_SEC = 60
 
 # Size of sectors used to ease block loading.
@@ -35,6 +34,13 @@ PLAYER_HEIGHT = 2
 
 if sys.version_info[0] >= 3:
     xrange = range
+
+def getHeight(image, pxX,pxY):
+
+    px = image.load()
+    color = px[pxX,pxY]
+    height = int(math.floor(color[1]))
+    return height
 
 def cube_vertices(x, y, z, n):
     """ Return the vertices of the cube at position x, y, z with size 2*n.
@@ -78,8 +84,11 @@ TEXTURE_PATH = 'texture.png'
 
 GRASS = tex_coords((1, 0), (0, 1), (0, 0))
 SAND = tex_coords((1, 1), (1, 1), (1, 1))
+DIRT = tex_coords((0, 1), (0, 1), (0, 1))
 BRICK = tex_coords((2, 0), (2, 0), (2, 0))
-STONE = tex_coords((2, 1), (2, 1), (2, 1))
+STONE = tex_coords((3, 1), (3, 1), (3, 1))
+COBBLESTONE = tex_coords((3, 0), (3, 0), (3, 0))
+BEDROCK = tex_coords((2, 1), (2, 1), (2, 1))
 
 FACES = [
     ( 0, 1, 0),
@@ -109,6 +118,7 @@ def normalize(position):
     return (x, y, z)
 
 
+
 def sectorize(position):
     """ Returns a tuple representing the sector for the given `position`.
 
@@ -125,7 +135,8 @@ def sectorize(position):
     x, y, z = x // SECTOR_SIZE, y // SECTOR_SIZE, z // SECTOR_SIZE
     return (x, 0, z)
 
-
+def rgb2hsv(image):
+    return image.convert('HSV')
 class Model(object):
 
     def __init__(self):
@@ -152,45 +163,46 @@ class Model(object):
         # Simple function queue implementation. The queue is populated with
         # _show_block() and _hide_block() calls
         self.queue = deque()
+        self.blockname = "BRICKS"
 
         self._initialize()
 
     def _initialize(self):
+
         """ Initialize the world by placing all the blocks.
 
         """
-        n = 80  # 1/2 width and height of world
+        n = 125  # 1/2 width and height of world
         s = 1  # step size
         y = 0  # initial y height
+        miny = -20
+        img = Image.open("noise.png")
+        img = rgb2hsv(img)
+        for z in range(n*2):
+            for i in range(n*2):
+                x,h,s = z-n,getHeight(img,z,i),i-n
+                self.add_block((x, h, s), GRASS, immediate=False)
+                h = h-1
+                dirth = h-5
+                while h>dirth-1:
+                    self.add_block((x, h, s), DIRT, immediate=False)
+                    h = h-1
+                while h>miny-1:
+                    self.add_block((x, h, s), STONE, immediate=False)
+                    h = h-1
+
         for x in xrange(-n, n + 1, s):
             for z in xrange(-n, n + 1, s):
                 # create a layer stone an grass everywhere.
                 self.add_block((x, y - 2, z), GRASS, immediate=False)
-                self.add_block((x, y - 3, z), STONE, immediate=False)
+                for i in range(10):
+                    self.add_block((x, y - 3-i, z), STONE, immediate=False)
+                self.add_block((x, y - 3 - 10, z), BEDROCK, immediate=False)
                 if x in (-n, n) or z in (-n, n):
                     # create outer walls.
                     for dy in xrange(-2, 3):
-                        self.add_block((x, y + dy, z), STONE, immediate=False)
+                        self.add_block((x, y + dy, z), BEDROCK, immediate=False)
 
-        # generate the hills randomly
-        o = n - 10
-        for _ in xrange(120):
-            a = random.randint(-o, o)  # x position of the hill
-            b = random.randint(-o, o)  # z position of the hill
-            c = -1  # base of the hill
-            h = random.randint(1, 6)  # height of the hill
-            s = random.randint(4, 8)  # 2 * s is the side length of the hill
-            d = 1  # how quickly to taper off the hills
-            t = random.choice([GRASS, SAND, BRICK])
-            for y in xrange(c, c + h):
-                for x in xrange(a - s, a + s + 1):
-                    for z in xrange(b - s, b + s + 1):
-                        if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
-                            continue
-                        if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
-                            continue
-                        self.add_block((x, y, z), t, immediate=False)
-                s -= d  # decrement side length so hills taper off
 
     def hit_test(self, position, vector, max_distance=8):
         """ Line of sight search from current position. If a block is
@@ -405,6 +417,8 @@ class Model(object):
         """
         self.queue.append((func, args))
 
+
+
     def _dequeue(self):
         """ Pop the top function from the internal queue and call it.
 
@@ -441,7 +455,7 @@ class Window(pyglet.window.Window):
 
         # When flying gravity has no effect and speed is increased.
         self.flying = False
-
+        self.blocknum = 0
         # Strafing is moving lateral to the direction you are facing,
         # e.g. moving to the left or right while continuing to face forward.
         #
@@ -472,10 +486,12 @@ class Window(pyglet.window.Window):
         self.dy = 0
 
         # A list of blocks the player can place. Hit num keys to cycle.
-        self.inventory = [BRICK, GRASS, SAND]
-
+        self.inventory = [BRICK, DIRT, SAND, COBBLESTONE]
+        self.inventorycol = [64, 64, 64, 64]
+        self.block_names = ["BRICKS", "DIRT", "SAND","COBBLESTONE"]
         # The current block the user can place. Hit num keys to cycle.
         self.block = self.inventory[0]
+        self.blockname = "BRICKS"
 
         # Convenience list of num keys.
         self.num_keys = [
@@ -493,6 +509,15 @@ class Window(pyglet.window.Window):
         # This call schedules the `update()` method to be called
         # TICKS_PER_SEC. This is the main game event loop.
         pyglet.clock.schedule_interval(self.update, 1.0 / TICKS_PER_SEC)
+
+    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        print(scroll_y)
+        self.blocknum = int(self.blocknum+scroll_y)
+        self.blocknum = self.blocknum % len(self.inventory)
+
+        self.block = self.inventory[self.blocknum]
+        self.blockname = self.block_names[self.blocknum]
+        pass
 
     def set_exclusive_mouse(self, exclusive):
         """ If `exclusive` is True, the game will capture the mouse, if False
@@ -679,10 +704,21 @@ class Window(pyglet.window.Window):
                     ((button == mouse.LEFT) and (modifiers & key.MOD_CTRL)):
                 # ON OSX, control + left click = right click.
                 if previous:
-                    self.model.add_block(previous, self.block)
+                    music = pyglet.resource.media('place.mp3')
+                    music.play()
+                    if(self.inventorycol[self.blocknum] > 0):
+                        self.model.add_block(previous, self.block)
+                        self.inventorycol[self.blocknum] = self.inventorycol[self.blocknum]-1
+
             elif button == pyglet.window.mouse.LEFT and block:
                 texture = self.model.world[block]
-                if texture != STONE:
+                if texture != BEDROCK:
+                    music = pyglet.resource.media('break.mp3')
+                    music.play()
+                    if(self.inventory.__contains__(texture)):
+                        self.inventorycol[self.inventory.index(texture)] = self.inventorycol[
+                                                                               self.inventory.index(texture)] + 1
+
                     self.model.remove_block(block)
         else:
             self.set_exclusive_mouse(True)
@@ -733,9 +769,12 @@ class Window(pyglet.window.Window):
             self.set_exclusive_mouse(False)
         elif symbol == key.TAB:
             self.flying = not self.flying
-        elif symbol in self.num_keys:
-            index = (symbol - self.num_keys[0]) % len(self.inventory)
-            self.block = self.inventory[index]
+        #elif symbol in self.num_keys:
+
+        #    index = (symbol - self.num_keys[0]) % len(self.inventory)
+
+        #    self.blockname = self.block_names[index]
+        #    self.block = self.inventory[index]
 
     def on_key_release(self, symbol, modifiers):
         """ Called when the player releases a key. See pyglet docs for key
@@ -839,9 +878,8 @@ class Window(pyglet.window.Window):
 
         """
         x, y, z = self.position
-        self.label.text = '%02d (%.2f, %.2f, %.2f) %d / %d' % (
-            pyglet.clock.get_fps(), x, y, z,
-            len(self.model._shown), len(self.model.world))
+        self.label.text = 'FPS: %02d XYZ: %.2f %.2f %.2f BLOCK SELECTED: %s %sx' % (
+            pyglet.clock.get_fps(), x, y, z,self.blockname,self.inventorycol[self.blocknum])
         self.label.draw()
 
     def draw_reticle(self):
@@ -891,9 +929,13 @@ def setup():
 
 
 def main():
-    window = Window(width=800, height=600, caption='Pyglet', resizable=True)
+    window = Window(width=800, height=600, caption='CraftPy', resizable=True)
     # Hide the mouse cursor and prevent the mouse from leaving the window.
     window.set_exclusive_mouse(True)
+    img = image = pyglet.resource.image("icon.png")
+
+    # setting image as icon
+    window.set_icon(img)
     setup()
     pyglet.app.run()
 
