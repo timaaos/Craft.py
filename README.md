@@ -8,7 +8,8 @@ pip install -r requirments.txt
 python3 main.py
 ```
 ## Examples:
-## [main.py](https://github.com/timaaos/Craft.py/blob/master/main.py)
+
+### main.py
 Just runs Craft.py with default settings!
 ## How to Play
 
