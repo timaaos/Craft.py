@@ -3,8 +3,7 @@
 Better version of fogleman's Minecraft on python.
 You can modding, just use craft.py's lib.
 Tutorial for Craft.py lib on wiki
-You need to use Python3.8
-To install this project and test do
+You need to use Python3.8, to install this project and test do
 ```sh
 git clone https://github.com/timaaos/Craft.py.git craftpy
 cd craftpy
