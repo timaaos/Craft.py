@@ -7,7 +7,8 @@ cd craftpy
 pip install -r requirments.txt
 python3 main.py
 ```
-
+## Examples:
+## [main.py](https://github.com/timaaos/Craft.py/blob/master/main.py)
 
 ## How to Play
 
