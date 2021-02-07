@@ -9,7 +9,7 @@ python3 main.py
 ```
 ## Examples:
 ## [main.py](https://github.com/timaaos/Craft.py/blob/master/main.py)
-
+Just runs Craft.py with default settings!
 ## How to Play
 
 ### Moving
