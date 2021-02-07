@@ -1,7 +1,17 @@
 # Craft.py
 
 Better version of fogleman's Minecraft on python.
-You can modding, just use craft.py's lib
+You can modding, just use craft.py's lib.
+Tutorial for Craft.py lib on wiki
+You need to use Python3.8
+To install this project and test do
+```sh
+git clone https://github.com/timaaos/Craft.py.git craftpy
+cd craftpy
+pip install -r requirments.txt
+python3 main.py
+```
+
 
 ## How to Play
 
@@ -18,9 +28,7 @@ You can modding, just use craft.py's lib
 ### Building
 
 - Selecting type of block to create:
-    - 1: brick
-    - 2: grass
-    - 3: sand
+    -Mouse scroll
 - Mouse left-click: remove block
 - Mouse right-click: create block
 
