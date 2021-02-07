@@ -149,6 +149,11 @@ class Model(object):
         self.WORLDSIZE = 250
         self.MIN_Y = -20
         self.MOUNTHEIGHT = 2
+        #Generator blocks
+        self.GRASS_BLOCK = GRASS
+        self.DIRT_BLOCK = DIRT
+        self.STONE_BLOCK = STONE
+        self.BEDROCK_BLOCK = BEDROCK
         # A Batch is a collection of vertex lists for batched rendering.
         self.batch = pyglet.graphics.Batch()
 
@@ -191,22 +196,22 @@ class Model(object):
             for i in range(n*2):
                 h2 = math.floor(getHeightNoise(noise,z,i))
                 x,h,s = z-n,math.floor(getHeightNoise(noise,z,i)),i-n
-                self.add_block((x, h, s), GRASS, immediate=False)
+                self.add_block((x, h, s), self.GRASS_BLOCK, immediate=False)
                 h = h-1
                 dirth = h-5
                 while h>dirth-1:
-                    self.add_block((x, h, s), DIRT, immediate=False)
+                    self.add_block((x, h, s), self.DIRT_BLOCK, immediate=False)
                     h = h-1
                 while h>miny-1:
-                    self.add_block((x, h, s), STONE, immediate=False)
+                    self.add_block((x, h, s), self.STONE_BLOCK, immediate=False)
                     h = h-1
 
                 x, h, s = z - n, math.floor(getHeightNoise(mountnoise, z, i))*2, i - n
-                self.add_block((x, h, s), STONE, immediate=False)
+                self.add_block((x, h, s), self.STONE_BLOCK, immediate=False)
                 h = h - 1
                 dirth = h - 5
                 while ((x, h, s) not in self.world) and (h > miny - 1):
-                    self.add_block((x, h, s), STONE, immediate=False)
+                    self.add_block((x, h, s), self.STONE_BLOCK, immediate=False)
                     h = h - 1
 
 
@@ -214,11 +219,11 @@ class Model(object):
 
         for x in xrange(-n, n + 1, s):
             for z in xrange(-n, n + 1, s):
-                # create a layer stone an grass everywhere
+                self.add_block((x, self.MIN_Y, z), self.BEDROCK_BLOCK, immediate=False)
                 if x in (-n, n) or z in (-n, n):
                     # create outer walls.
                     for dy in xrange(-25, 25):
-                        self.add_block((x, y + dy, z), BEDROCK, immediate=False)
+                        self.add_block((x, y + dy, z), self.BEDROCK_BLOCK, immediate=False)
 
 
     def hit_test(self, position, vector, max_distance=8):
