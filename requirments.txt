@@ -1,3 +1,2 @@
-perlin_noise
-pillow
-pyglet
+perlin_noise==1.7
+pyglet==1.5.14

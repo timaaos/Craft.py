@@ -38,6 +38,7 @@ def getHeightNoise(noisearr, pxX,pxY):
     height = noisearr[pxX][pxY]
     height = height*10
     print(height)
+    print(noisearr[pxX][pxY])
     return height
 
 def cube_vertices(x, y, z, n):
@@ -87,6 +88,7 @@ BRICK = tex_coords((2, 0), (2, 0), (2, 0))
 STONE = tex_coords((3, 1), (3, 1), (3, 1))
 COBBLESTONE = tex_coords((3, 0), (3, 0), (3, 0))
 BEDROCK = tex_coords((2, 1), (2, 1), (2, 1))
+WATER = tex_coords((3,2),(3,2),(3,2))
 
 FACES = [
     ( 0, 1, 0),
@@ -178,13 +180,15 @@ class Model(object):
         s = 1  # step size
         y = 0  # initial y height
         miny = -20
-        img = Image.open("noise.png")
-        img = rgb2hsv(img)
+        hillh = 3
+        mountnum = int(input("Enter mountain height(2 is default, 5 is VERY BIG MOUNTAINS):"))
         noise = gen.noise()
+        mountnoise = gen.noiseMountain(noise, mountnum)
+        disallowxzmountain = []
         for z in range(n*2):
             for i in range(n*2):
+                h2 = math.floor(getHeightNoise(noise,z,i))
                 x,h,s = z-n,math.floor(getHeightNoise(noise,z,i)),i-n
-
                 self.add_block((x, h, s), GRASS, immediate=False)
                 h = h-1
                 dirth = h-5
@@ -194,6 +198,17 @@ class Model(object):
                 while h>miny-1:
                     self.add_block((x, h, s), STONE, immediate=False)
                     h = h-1
+
+                x, h, s = z - n, math.floor(getHeightNoise(mountnoise, z, i))*2, i - n
+                self.add_block((x, h, s), STONE, immediate=False)
+                h = h - 1
+                dirth = h - 5
+                while ((x, h, s) not in self.world) and (h > miny - 1):
+                    self.add_block((x, h, s), STONE, immediate=False)
+                    h = h - 1
+
+
+
 
         for x in xrange(-n, n + 1, s):
             for z in xrange(-n, n + 1, s):
@@ -505,7 +520,8 @@ class Window(pyglet.window.Window):
         self.model = Model()
 
         # The label that is displayed in the top left of the canvas.
-        self.label = pyglet.text.Label('', font_name='Arial', font_size=18,
+        pyglet.font.add_file("Minecraft.ttf")
+        self.label = pyglet.text.Label('', font_name='Minecraft', font_size=18,
             x=10, y=self.height - 10, anchor_x='left', anchor_y='top',
             color=(0, 0, 0, 255))
 
