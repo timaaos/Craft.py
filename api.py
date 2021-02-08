@@ -146,7 +146,7 @@ class Model(object):
 
     def __init__(self):
 
-        self.WORLDSIZE = 250
+        self.WORLDSIZE = 100
         self.MIN_Y = -20
         self.MOUNTHEIGHT = 2
         #Generator blocks
@@ -177,7 +177,7 @@ class Model(object):
         self.queue = deque()
         self.blockname = "BRICKS"
 
-        self._initialize()
+
 
     def _initialize(self):
 
@@ -189,8 +189,8 @@ class Model(object):
         y = 0  # initial y height
         miny = self.MIN_Y
         mountnum = self.MOUNTHEIGHT
-        noise = gen.noise()
-        mountnoise = gen.noiseMountain(noise, mountnum)
+        noise = gen.noise(self.WORLDSIZE)
+        mountnoise = gen.noiseMountain(noise, mountnum,self.WORLDSIZE)
         disallowxzmountain = []
         for z in range(n*2):
             for i in range(n*2):
@@ -469,7 +469,7 @@ class Model(object):
 
 class Window(pyglet.window.Window):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,*args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
         img = image = pyglet.resource.image("icon.png")
         self.set_icon(img)
@@ -524,7 +524,7 @@ class Window(pyglet.window.Window):
             key._6, key._7, key._8, key._9, key._0]
 
         # Instance of the model that handles the world.
-        self.model = Model()
+        self.model = None
 
         # The label that is displayed in the top left of the canvas.
         pyglet.font.add_file("Minecraft.ttf")
@@ -536,6 +536,8 @@ class Window(pyglet.window.Window):
         # TICKS_PER_SEC. This is the main game event loop.
         pyglet.clock.schedule_interval(self.update, 1.0 / TICKS_PER_SEC)
 
+    def getModel(self):
+        return self.model
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         print(scroll_y)
         self.blocknum = int(self.blocknum+scroll_y)
