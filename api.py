@@ -511,6 +511,7 @@ class Window(pyglet.window.Window):
         self.dy = 0
 
         # A list of blocks the player can place. Hit num keys to cycle.
+        self.blocksadded = []
         self.inventory = [BRICK, DIRT, SAND, COBBLESTONE]
         self.inventorycol = [64, 64, 64, 64]
         self.block_names = ["BRICKS", "DIRT", "SAND","COBBLESTONE"]
@@ -538,6 +539,10 @@ class Window(pyglet.window.Window):
 
     def getModel(self):
         return self.model
+    def addToInventory(self,texture,name,defcol):
+        self.inventory.append(texture)
+        self.inventorycol.append(defcol)
+        self.block_names.append(name)
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         print(scroll_y)
         self.blocknum = int(self.blocknum+scroll_y)
