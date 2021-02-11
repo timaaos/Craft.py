@@ -81,14 +81,6 @@ def tex_coords(top, bottom, side):
 
 TEXTURE_PATH = 'texture.png'
 
-GRASS = tex_coords((1, 0), (0, 1), (0, 0))
-SAND = tex_coords((1, 1), (1, 1), (1, 1))
-DIRT = tex_coords((0, 1), (0, 1), (0, 1))
-BRICK = tex_coords((2, 0), (2, 0), (2, 0))
-STONE = tex_coords((3, 1), (3, 1), (3, 1))
-COBBLESTONE = tex_coords((3, 0), (3, 0), (3, 0))
-BEDROCK = tex_coords((2, 1), (2, 1), (2, 1))
-WATER = tex_coords((3,2),(3,2),(3,2))
 
 FACES = [
     ( 0, 1, 0),
@@ -99,7 +91,20 @@ FACES = [
     ( 0, 0,-1),
 ]
 
+class Block():
+    def __init__(self):
+        self.texture = None
+        self.sound_break = "break.mp3"
+        self.sound_place = "place.mp3"
+GRASS = tex_coords((1, 0), (0, 1), (0, 0))
+SAND = tex_coords((1, 1), (1, 1), (1, 1))
+DIRT = tex_coords((0, 1), (0, 1), (0, 1))
+BRICK = tex_coords((2, 0), (2, 0), (2, 0))
+STONE = tex_coords((3, 1), (3, 1), (3, 1))
+COBBLESTONE = tex_coords((3, 0), (3, 0), (3, 0))
 
+BEDROCK = tex_coords((2, 1), (2, 1), (2, 1))
+WATER = tex_coords((3,2),(3,2),(3,2))
 def normalize(position):
     """ Accepts `position` of arbitrary precision and returns the block
     containing that position.
@@ -518,7 +523,7 @@ class Window(pyglet.window.Window):
         # The current block the user can place. Hit num keys to cycle.
         self.block = self.inventory[0]
         self.blockname = "BRICKS"
-
+        self.transparentblocks = []
         # Convenience list of num keys.
         self.num_keys = [
             key._1, key._2, key._3, key._4, key._5,
@@ -950,7 +955,7 @@ def setup():
 
     """
     # Set the color of "clear", i.e. the sky, in rgba.
-    glClearColor(0.5, 0.69, 1.0, 1)
+    glClearColor(0.5, 0.59, 1.0, 1)
     # Enable culling (not rendering) of back-facing facets -- facets that aren't
     # visible to you.
     glEnable(GL_CULL_FACE)
