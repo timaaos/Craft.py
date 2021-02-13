@@ -12,7 +12,7 @@ python3 main.py
 ### main.py
 Just runs Craft.py with default settings!
 ### myfirstmod.py
-Wilber block mod!
+YOUR first mod mod!
 ## How to Play
 
 ### Moving
