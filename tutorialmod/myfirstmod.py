@@ -1,4 +1,5 @@
 import api as mc
+from Block import Block
 import gen_noise
 import pyglet
 import sys, os
@@ -6,9 +7,11 @@ import math
 pathname = os.path.dirname(sys.argv[0])
 texture = pathname + "\modtexture.png"
 mc.TEXTURE_PATH = texture
-WILBER_BLOCK = mc.tex_coords((2,2),(2,2),(2,2))
+WILBER_BLOCK = Block()
+WILBER_BLOCK.name = "Wilber"
+WILBER_BLOCK.col = 5
 window = mc.Window(width=800, height=600, caption='CraftPy', resizable=True)
-window.addToInventory(WILBER_BLOCK,"Wilber",5)
+window.inventory.append(WILBER_BLOCK)
 model = mc.Model()
 model._initialize()
 window.model = model

@@ -10,6 +10,7 @@ from pyglet.gl import *
 import gen_noise as gen
 from pyglet.graphics import TextureGroup
 from pyglet.window import key, mouse
+from Block import Block
 TICKS_PER_SEC = 60
 
 # Size of sectors used to ease block loading.
@@ -91,20 +92,31 @@ FACES = [
     ( 0, 0,-1),
 ]
 
-class Block():
-    def __init__(self):
-        self.texture = None
-        self.sound_break = "break.mp3"
-        self.sound_place = "place.mp3"
-GRASS = tex_coords((1, 0), (0, 1), (0, 0))
-SAND = tex_coords((1, 1), (1, 1), (1, 1))
-DIRT = tex_coords((0, 1), (0, 1), (0, 1))
-BRICK = tex_coords((2, 0), (2, 0), (2, 0))
-STONE = tex_coords((3, 1), (3, 1), (3, 1))
-COBBLESTONE = tex_coords((3, 0), (3, 0), (3, 0))
 
-BEDROCK = tex_coords((2, 1), (2, 1), (2, 1))
+BEDROCK = Block()
+BEDROCK.texture = tex_coords((2, 1), (2, 1), (2, 1))
+BEDROCK.name = "Bedrock"
 WATER = tex_coords((3,2),(3,2),(3,2))
+GRASS = Block()
+GRASS.texture = tex_coords((1, 0), (0, 1), (0, 0))
+GRASS.name = "Grass Block"
+DIRT = Block()
+DIRT.texture = tex_coords((0, 1), (0, 1), (0, 1))
+DIRT.name = "Dirt"
+SAND = Block()
+SAND.texture = tex_coords((1, 1), (1, 1), (1, 1))
+SAND.name = "Sand"
+BRICK = Block()
+BRICK.texture = tex_coords((2, 0), (2, 0), (2, 0))
+BRICK.name = "Brick"
+STONE = Block()
+STONE.texture = tex_coords((3, 1), (3, 1), (3, 1))
+STONE.name = "Stone"
+COBBLESTONE = Block()
+COBBLESTONE.texture = tex_coords((3, 0), (3, 0), (3, 0))
+COBBLESTONE.name = "Cobblestone"
+GRASS.dropping = DIRT
+STONE.dropping = COBBLESTONE
 def normalize(position):
     """ Accepts `position` of arbitrary precision and returns the block
     containing that position.
@@ -269,7 +281,7 @@ class Model(object):
                 return True
         return False
 
-    def add_block(self, position, texture, immediate=True):
+    def add_block(self, position, block, immediate=True):
         """ Add a block with the given `texture` and `position` to the world.
 
         Parameters
@@ -285,7 +297,8 @@ class Model(object):
         """
         if position in self.world:
             self.remove_block(position, immediate)
-        self.world[position] = texture
+        self.world[position] = block
+        #print(self.world)
         self.sectors.setdefault(sectorize(position), []).append(position)
         if immediate:
             if self.exposed(position):
@@ -341,7 +354,8 @@ class Model(object):
             Whether or not to show the block immediately.
 
         """
-        texture = self.world[position]
+        block = self.world[position]
+        texture = block.texture
         self.shown[position] = texture
         if immediate:
             self._show_block(position, texture)
@@ -744,21 +758,20 @@ class Window(pyglet.window.Window):
                 # ON OSX, control + left click = right click.
                 if previous:
 
-                    if(self.inventorycol[self.blocknum] > 0):
+                    if(self.block.col > 0):
 
                         music = pyglet.resource.media('place.mp3')
                         music.play()
                         self.model.add_block(previous, self.block)
-                        self.inventorycol[self.blocknum] = self.inventorycol[self.blocknum]-1
+                        self.block.col = self.block.col-1
 
             elif button == pyglet.window.mouse.LEFT and block:
                 texture = self.model.world[block]
                 if texture != BEDROCK:
                     music = pyglet.resource.media('break.mp3')
                     music.play()
-                    if(self.inventory.__contains__(texture)):
-                        self.inventorycol[self.inventory.index(texture)] = self.inventorycol[
-                                                                               self.inventory.index(texture)] + 1
+                    if(self.inventory.__contains__(texture.dropping)):
+                        self.inventory[self.inventory.index(texture.dropping)].col = self.inventory[self.inventory.index(texture.dropping)].col+1
 
                     self.model.remove_block(block)
         else:
@@ -920,7 +933,7 @@ class Window(pyglet.window.Window):
         """
         x, y, z = self.position
         self.label.text = 'FPS: %02d XYZ: %.2f %.2f %.2f BLOCK SELECTED: %s %sx' % (
-            pyglet.clock.get_fps(), x, y, z,self.blockname,self.inventorycol[self.blocknum])
+            pyglet.clock.get_fps(), x, y, z,self.block.name,self.block.col)
         self.label.draw()
 
     def draw_reticle(self):
