@@ -536,7 +536,6 @@ class Window(pyglet.window.Window):
         self.block_names = ["BRICKS", "DIRT", "SAND","COBBLESTONE"]
         # The current block the user can place. Hit num keys to cycle.
         self.block = self.inventory[0]
-        self.blockname = "BRICKS"
         self.transparentblocks = []
         # Convenience list of num keys.
         self.num_keys = [
@@ -568,7 +567,6 @@ class Window(pyglet.window.Window):
         self.blocknum = self.blocknum % len(self.inventory)
 
         self.block = self.inventory[self.blocknum]
-        self.blockname = self.block_names[self.blocknum]
         pass
 
     def set_exclusive_mouse(self, exclusive):
