@@ -8,6 +8,7 @@ pathname = os.path.dirname(sys.argv[0])
 texture = pathname + "\modtexture.png"
 mc.TEXTURE_PATH = texture
 WILBER_BLOCK = Block()
+WILBER_BLOCK.texture = mc.tex_coords((2,2),(2,2),(2,2))
 WILBER_BLOCK.name = "Wilber"
 WILBER_BLOCK.col = 5
 window = mc.Window(width=800, height=600, caption='CraftPy', resizable=True)
